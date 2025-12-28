@@ -1,6 +1,6 @@
 {
   "short_name": "Ton",
-  "name": "erzeugt einen Testton",
+  "name": "erzeugt einen Testtons",
   "description": "Testton und Farbe",
   "start_url": "index.html",
   "display": "standalone",
