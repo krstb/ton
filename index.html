@@ -2,10 +2,10 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Spritrechner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ton</title>
 
-    <link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="light">
     <meta name="mobile-web-app-capable" content="yes">
@@ -13,6 +13,7 @@
     <link rel="apple-touch-icon" href="icon-192.png">
 
     <script>
+      // Service Worker Registrierung
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('sw.js')
@@ -23,225 +24,257 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        html {
-            background-color: #000000 !important;
-            height: 100%;
-        }
+
+/* Fix für PWA-Ränder */
+    html {background-color: #000000 !important;}
         
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
+            transition: background-color 0.5s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        /* Custom message box styling */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 1000;
         }
-
-        @media (max-width: 640px) {
-            .difference-stacked > input {
-                text-align: center !important;
+        .message-box.hidden {
+            display: none;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px; /* Space between buttons */
+            align-items: center;
+        }
+        @media (min-width: 640px) {
+            .button-group {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
             }
+        }
+        .volume-control {
+            margin-top: 24px;
+            text-align: center;
+        }
+        .volume-control input[type="range"] {
+            width: 80%;
+            -webkit-appearance: none;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            outline: none;
+            transition: opacity .2s;
+        }
+        .volume-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .volume-control input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex items-start justify-center min-h-screen p-4 pt-10">
+<body>
 
-    <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-4 space-y-4 border-2 border-gray-700">
+    <div class="p-6 md:p-10 rounded-xl shadow-2xl bg-white bg-opacity-80 backdrop-filter backdrop-blur-lg border border-gray-200 text-center">
+        <h1 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Ton</h1>
+        <p class="text-lg md:text-xl text-gray-600 mb-6">Klicke auf die Buttons, um die App zu steuern.</p>
         
-        <div class="text-center">
-            <h1 class="text-2xl font-bold text-white">Spritrechner</h1>
+        <div class="button-group">
+            <button id="color-changer-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+                Farbe ändern
+            </button>
+            <button id="high-tone-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50">
+                Ton abspielen (hoch)
+            </button>
+            <button id="low-tone-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-teal-500 focus:ring-opacity-50">
+                Ton abspielen (tief)
+            </button>
+            <button id="alternating-tone-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-500 focus:ring-opacity-50">
+                Ton abspielen (wechselnd)
+            </button>
         </div>
 
-        <div class="bg-gray-900 border border-gray-700 p-3 rounded-lg space-y-2">
-            <label for="kmInput" class="text-xs font-bold text-gray-400 uppercase">Gefahrene Strecke</label>
-            <input type="text" id="kmInput" inputmode="decimal" class="w-full p-2 text-lg rounded-md bg-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-colors" placeholder="Kilometer (km)">
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-            <div class="bg-gray-900 border border-gray-700 p-3 rounded-lg space-y-3">
-                <h2 class="text-lg font-bold text-blue-400 text-center">Verbrenner</h2>
-                <div>
-                    <label for="fuelConsumption" class="block text-xs font-medium text-gray-400 mb-1">Verbrauch (l / 100 km)</label>
-                    <input type="text" id="fuelConsumption" inputmode="decimal" class="w-full p-2 rounded-md bg-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" placeholder="z.B. 9,0">
-                </div>
-                <div>
-                    <label for="fuelPrice" class="block text-xs font-medium text-gray-400 mb-1">Preis (€ / l)</label>
-                    <input type="text" id="fuelPrice" inputmode="decimal" class="w-full p-2 rounded-md bg-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" placeholder="z.B. 1,60">
-                </div>
-                <div>
-                    <label for="euroOutput" class="block text-xs font-medium text-gray-400 mb-1">Geschätzte Kosten</label>
-                    <input type="text" id="euroOutput" readonly class="w-full p-2 rounded-md bg-gray-600 text-white font-bold cursor-not-allowed" placeholder="0,00 €">
-                </div>
-            </div>
-
-            <div class="bg-gray-900 border border-gray-700 p-3 rounded-lg space-y-3">
-                <h2 class="text-lg font-bold text-green-400 text-center">Elektro</h2>
-                <div>
-                    <label for="kwhConsumption" class="block text-xs font-medium text-gray-400 mb-1">Verbrauch (kWh / 100 km)</label>
-                    <input type="text" id="kwhConsumption" inputmode="decimal" class="w-full p-2 rounded-md bg-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors" placeholder="z.B. 30,0">
-                </div>
-                <div>
-                    <label for="kwhPrice" class="block text-xs font-medium text-gray-400 mb-1">Preis (€ / kWh)</label>
-                    <input type="text" id="kwhPrice" inputmode="decimal" class="w-full p-2 rounded-md bg-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors" placeholder="z.B. 0,36">
-                </div>
-                <div>
-                    <label for="euroOutputEv" class="block text-xs font-medium text-gray-400 mb-1">Geschätzte Kosten</label>
-                    <input type="text" id="euroOutputEv" readonly class="w-full p-2 rounded-md bg-gray-600 text-white font-bold cursor-not-allowed" placeholder="0,00 €">
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-gray-900 border border-gray-700 p-3 rounded-lg space-y-2 difference-stacked">
-            <p id="differenceHeading" class="text-sm font-bold text-yellow-400 uppercase text-center block mb-1">Differenz</p>
-            <input type="text" id="differenceOutput" readonly class="w-full p-2 text-xl text-center rounded-md bg-black text-white font-bold cursor-not-allowed transition-colors" placeholder="Ersparnis wird berechnet...">
+        <div class="volume-control">
+            <label for="volume-slider" class="block text-gray-700 font-medium mb-2">Lautstärke:</label>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" class="w-full">
         </div>
     </div>
 
-    <script>
-        const kmInput = document.getElementById('kmInput');
-        const fuelConsumptionInput = document.getElementById('fuelConsumption');
-        const fuelPriceInput = document.getElementById('fuelPrice');
-        const euroOutput = document.getElementById('euroOutput');
-        const kwhConsumptionInput = document.getElementById('kwhConsumption');
-        const kwhPriceInput = document.getElementById('kwhPrice');
-        const euroOutputEv = document.getElementById('euroOutputEv');
-        const differenceOutput = document.getElementById('differenceOutput');
-        const differenceHeading = document.getElementById('differenceHeading');
+    <!-- Custom message box for notifications -->
+    <div id="message-box" class="message-box hidden">
+        <p id="message-text" class="text-xl font-bold text-gray-800 mb-4"></p>
+        <button id="close-message-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105">
+            OK
+        </button>
+    </div>
 
-        const DEFAULT_FUEL_CONSUMPTION = 9.0;
-        const DEFAULT_FUEL_PRICE = 1.60;
-        const DEFAULT_KWH_CONSUMPTION = 30.0;
-        const DEFAULT_KWH_PRICE = 0.36;
+    <script>
+        // Get the buttons and the body element
+        const colorChangerBtn = document.getElementById('color-changer-btn');
+        const highToneBtn = document.getElementById('high-tone-btn');
+        const lowToneBtn = document.getElementById('low-tone-btn');
+        const alternatingToneBtn = document.getElementById('alternating-tone-btn');
+        const volumeSlider = document.getElementById('volume-slider');
+        const body = document.body;
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const closeMessageBtn = document.getElementById('close-message-btn');
+
+        // Define a list of colors
+        const colors = [
+            '#ef4444', // rot
+            '#f97316', // orange
+            '#eab308', // gelb
+            '#22c55e', // grün
+            '#06b6d4', // türkis
+            '#3b82f6', // blau
+            '#6366f1', // indigo
+            '#a855f7', // violett
+            '#ec4899', // pink
+        ];
         
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDataFromLocalStorage();
-            addEventListeners();
-            calculateAll();
+        // Counter for color change clicks
+        let colorClickCount = 0;
+
+        // Function to get a random color from the list
+        function getRandomColor() {
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // Function to show a message
+        function showMessage(text) {
+            messageText.textContent = text;
+            messageBox.classList.remove('hidden');
+        }
+        
+        // Function to hide the message
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        // Create a single AudioContext and a master gain node
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const masterGainNode = audioContext.createGain();
+        masterGainNode.connect(audioContext.destination);
+        // Set initial volume
+        masterGainNode.gain.value = volumeSlider.value;
+        
+        const lowGainNode = audioContext.createGain();
+        const highGainNode = audioContext.createGain();
+        
+        lowGainNode.gain.value = 2.5; // Erhöhte Lautstärke für den tiefen Ton
+        highGainNode.gain.value = 1.0; // Standardlautstärke für den hohen Ton
+
+        // Function to play a tone
+        function playTone(frequency = 440, isLowTone = false) {
+            const oscillator = audioContext.createOscillator();
+            
+            oscillator.type = 'sine'; // Kann sein 'sine', 'square', 'sawtooth', 'triangle'
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // Frequenz einstellen
+            
+            // Connect oscillator to the appropriate gain node
+            if (isLowTone) {
+                oscillator.connect(lowGainNode);
+            } else {
+                oscillator.connect(highGainNode);
+            }
+            
+            // Connect the tone gain node to the master gain node
+            lowGainNode.connect(masterGainNode);
+            highGainNode.connect(masterGainNode);
+
+            oscillator.start(0);
+            oscillator.stop(audioContext.currentTime + 0.2); // Stop tone after 0.2 seconds
+        }
+        
+        // Function to play a tone multiple times with a delay
+        function playToneThrice(frequency, isLowTone = false) {
+            playTone(frequency, isLowTone);
+            setTimeout(() => playTone(frequency, isLowTone), 400); // Play again after 400ms
+            setTimeout(() => playTone(frequency, isLowTone), 800); // Play a third time after 800ms
+        }
+        
+        // Function to play an alternating high/low tone sequence
+        function playAlternatingSequence() {
+            // Play high tone three times
+            playTone(880, false);
+            setTimeout(() => playTone(880, false), 400);
+            setTimeout(() => playTone(880, false), 800);
+
+            // Wait 1.2 seconds before playing the low tones
+            setTimeout(() => {
+                // Play low tone three times
+                playTone(330, true);
+                setTimeout(() => playTone(330, true), 400);
+                setTimeout(() => playTone(330, true), 800);
+            }, 1200);
+        }
+        
+        // Add event listener to the color changer button
+        colorChangerBtn.addEventListener('click', () => {
+            body.style.backgroundColor = getRandomColor();
+            
+            colorClickCount++;
+            
+            if (colorClickCount % 5 === 0) {
+                showMessage("Du hast die Farbe 5 mal geändert. Die nächste Farbe ist rot!");
+                setTimeout(() => {
+                    body.style.backgroundColor = '#ef4444'; // Rot
+                }, 1000);
+            } else {
+                hideMessage();
+            }
+        });
+        
+        // Add event listener to the high tone button
+        highToneBtn.addEventListener('click', () => {
+            playToneThrice(880, false); // Play a high tone three times
         });
 
-        function parseGermanFloat(str) {
-            if (typeof str !== 'string' || str.trim() === '') return NaN;
-            return parseFloat(str.replace(',', '.'));
-        }
-
-        function formatToGermanString(num, decimals) {
-            if (typeof num !== 'number' || isNaN(num)) return '';
-            return num.toFixed(decimals).replace('.', ',');
-        }
-
-        function addEventListeners() {
-            [kmInput, fuelConsumptionInput, fuelPriceInput, kwhConsumptionInput, kwhPriceInput].forEach(el => {
-                el.addEventListener('input', calculateAndSave);
-            });
-            
-            fuelConsumptionInput.addEventListener('blur', (e) => formatNumericInput(e, 1));
-            kwhConsumptionInput.addEventListener('blur', (e) => formatNumericInput(e, 1));
-            fuelPriceInput.addEventListener('blur', (e) => formatNumericInput(e, 2));
-            kwhPriceInput.addEventListener('blur', (e) => formatNumericInput(e, 2));
-            kmInput.addEventListener('blur', (e) => formatNumericInput(e, 2));
-        }
-
-        function loadDataFromLocalStorage() {
-            try {
-                const savedData = localStorage.getItem('fuelCalculatorSettings');
-                if (savedData) {
-                    const data = JSON.parse(savedData);
-                    fuelConsumptionInput.value = formatToGermanString(data.fuelConsumption || DEFAULT_FUEL_CONSUMPTION, 1);
-                    fuelPriceInput.value = formatToGermanString(data.fuelPrice || DEFAULT_FUEL_PRICE, 2);
-                    kwhConsumptionInput.value = formatToGermanString(data.kwhConsumption || DEFAULT_KWH_CONSUMPTION, 1);
-                    kwhPriceInput.value = formatToGermanString(data.kwhPrice || DEFAULT_KWH_PRICE, 2);
-                    kmInput.value = formatToGermanString(data.km || '', 2);
-                } else {
-                    setAllDefaults();
-                }
-            } catch (error) {
-                setAllDefaults();
-            }
-        }
+        // Add event listener to the low tone button
+        lowToneBtn.addEventListener('click', () => {
+            playToneThrice(330, true); // Play a low tone three times (frequency adjusted)
+        });
         
-        function setAllDefaults() {
-            fuelConsumptionInput.value = formatToGermanString(DEFAULT_FUEL_CONSUMPTION, 1);
-            fuelPriceInput.value = formatToGermanString(DEFAULT_FUEL_PRICE, 2);
-            kwhConsumptionInput.value = formatToGermanString(DEFAULT_KWH_CONSUMPTION, 1);
-            kwhPriceInput.value = formatToGermanString(DEFAULT_KWH_PRICE, 2);
-        }
-
-        function formatNumericInput(event, decimals) {
-            const input = event.target;
-            const value = parseGermanFloat(input.value);
-            if (!isNaN(value)) {
-                const formattedValue = formatToGermanString(value, decimals);
-                if (input.value && input.value !== formattedValue) {
-                    input.value = formattedValue;
-                    calculateAndSave();
-                }
-            }
-        }
-
-        function saveDataToLocalStorage() {
-            try {
-                const dataToSave = {
-                    km: parseGermanFloat(kmInput.value) || null,
-                    fuelConsumption: parseGermanFloat(fuelConsumptionInput.value) || null,
-                    fuelPrice: parseGermanFloat(fuelPriceInput.value) || null,
-                    kwhConsumption: parseGermanFloat(kwhConsumptionInput.value) || null,
-                    kwhPrice: parseGermanFloat(kwhPriceInput.value) || null,
-                };
-                localStorage.setItem('fuelCalculatorSettings', JSON.stringify(dataToSave));
-            } catch (error) {}
-        }
-
-        function calculateGas() {
-            const kmValue = parseGermanFloat(kmInput.value);
-            const fuelConsumption = parseGermanFloat(fuelConsumptionInput.value);
-            const fuelPrice = parseGermanFloat(fuelPriceInput.value);
-            if (!isNaN(kmValue) && !isNaN(fuelConsumption) && !isNaN(fuelPrice) && fuelConsumption > 0 && fuelPrice > 0) {
-                euroOutput.value = formatToGermanString((kmValue / 100) * fuelConsumption * fuelPrice, 2) + " €";
-            } else { euroOutput.value = ''; }
-        }
+        // Add event listener to the new alternating tone button
+        alternatingToneBtn.addEventListener('click', () => {
+            playAlternatingSequence();
+        });
         
-        function calculateEv() {
-            const kmValue = parseGermanFloat(kmInput.value);
-            const kwhConsumption = parseGermanFloat(kwhConsumptionInput.value);
-            const kwhPrice = parseGermanFloat(kwhPriceInput.value);
-            if (!isNaN(kmValue) && !isNaN(kwhConsumption) && !isNaN(kwhPrice) && kwhConsumption > 0 && kwhPrice > 0) {
-                euroOutputEv.value = formatToGermanString((kmValue / 100) * kwhConsumption * kwhPrice, 2) + " €";
-            } else { euroOutputEv.value = ''; }
-        }
-
-        function calculateDifference() {
-            const costGas = parseGermanFloat(euroOutput.value.replace('€', '').trim());
-            const costEv = parseGermanFloat(euroOutputEv.value.replace('€', '').trim());
-
-            differenceOutput.classList.remove('text-green-400', 'text-blue-400', 'text-white');
-            differenceHeading.classList.remove('text-green-400', 'text-blue-400', 'text-yellow-400');
-            differenceHeading.textContent = 'Differenz';
-            differenceHeading.classList.add('text-yellow-400');
-
-            if (!isNaN(costGas) && !isNaN(costEv)) {
-                const diff = Math.abs(costGas - costEv);
-                const higherCost = Math.max(costGas, costEv);
-                let percentageText = higherCost > 0 && diff > 0 ? ` (${formatToGermanString((diff / higherCost) * 100, 1)}%)` : '';
-                let textClass = costGas < costEv ? 'text-blue-400' : (costEv < costGas ? 'text-green-400' : 'text-white');
-                
-                differenceHeading.textContent = costGas < costEv ? 'Ersparnis Verbrenner' : (costEv < costGas ? 'Ersparnis Elektro' : 'Kein Kostenunterschied');
-                differenceHeading.classList.replace('text-yellow-400', textClass);
-                differenceOutput.value = formatToGermanString(diff, 2) + ' €' + percentageText;
-                differenceOutput.classList.add(textClass);
-            } else {
-                differenceOutput.value = '0,00 €';
-                differenceOutput.classList.add('text-white');
-            }
-        }
+        // Add event listener for the volume slider input
+        volumeSlider.addEventListener('input', (event) => {
+            masterGainNode.gain.value = event.target.value;
+        });
         
-        function calculateAll() { calculateGas(); calculateEv(); calculateDifference(); }
-        function calculateAndSave() { calculateAll(); saveDataToLocalStorage(); }
+        // Add event listener to close the message box
+        closeMessageBtn.addEventListener('click', hideMessage);
     </script>
 </body>
+
 </html>
-
-
