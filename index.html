@@ -2,14 +2,14 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
     <title>Ton</title>
 
-<link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="light">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-192.png">
 
     <script>
@@ -24,19 +24,36 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-
-/* Fix für PWA-Ränder */
-    html {background-color: #000000 !important;}
+        /* Fix: HTML füllt den Screen komplett aus */
+        html {
+            background-color: #000000 !important;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
         
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
         body {
+            /* Fix: Verhindert das Verspringen beim Refresh */
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            height: -webkit-fill-available;
             font-family: 'Inter', sans-serif;
             transition: background-color 0.5s ease-in-out;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            overflow: hidden;
+            position: fixed; /* Fixiert das Layout gegen vertikales Rutschen */
+            top: 0;
+            left: 0;
         }
+
         /* Custom message box styling */
         .message-box {
             position: fixed;
@@ -56,7 +73,7 @@
         .button-group {
             display: flex;
             flex-direction: column;
-            gap: 16px; /* Space between buttons */
+            gap: 16px;
             align-items: center;
         }
         @media (min-width: 640px) {
@@ -126,7 +143,6 @@
         </div>
     </div>
 
-    <!-- Custom message box for notifications -->
     <div id="message-box" class="message-box hidden">
         <p id="message-text" class="text-xl font-bold text-gray-800 mb-4"></p>
         <button id="close-message-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105">
@@ -135,7 +151,6 @@
     </div>
 
     <script>
-        // Get the buttons and the body element
         const colorChangerBtn = document.getElementById('color-changer-btn');
         const highToneBtn = document.getElementById('high-tone-btn');
         const lowToneBtn = document.getElementById('low-tone-btn');
@@ -146,135 +161,65 @@
         const messageText = document.getElementById('message-text');
         const closeMessageBtn = document.getElementById('close-message-btn');
 
-        // Define a list of colors
-        const colors = [
-            '#ef4444', // rot
-            '#f97316', // orange
-            '#eab308', // gelb
-            '#22c55e', // grün
-            '#06b6d4', // türkis
-            '#3b82f6', // blau
-            '#6366f1', // indigo
-            '#a855f7', // violett
-            '#ec4899', // pink
-        ];
-        
-        // Counter for color change clicks
+        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#ec4899'];
         let colorClickCount = 0;
 
-        // Function to get a random color from the list
-        function getRandomColor() {
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
-        
-        // Function to show a message
-        function showMessage(text) {
-            messageText.textContent = text;
-            messageBox.classList.remove('hidden');
-        }
-        
-        // Function to hide the message
-        function hideMessage() {
-            messageBox.classList.add('hidden');
-        }
+        function getRandomColor() { return colors[Math.floor(Math.random() * colors.length)]; }
+        function showMessage(text) { messageText.textContent = text; messageBox.classList.remove('hidden'); }
+        function hideMessage() { messageBox.classList.add('hidden'); }
 
-        // Create a single AudioContext and a master gain node
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const masterGainNode = audioContext.createGain();
         masterGainNode.connect(audioContext.destination);
-        // Set initial volume
         masterGainNode.gain.value = volumeSlider.value;
         
         const lowGainNode = audioContext.createGain();
         const highGainNode = audioContext.createGain();
-        
-        lowGainNode.gain.value = 2.5; // Erhöhte Lautstärke für den tiefen Ton
-        highGainNode.gain.value = 1.0; // Standardlautstärke für den hohen Ton
+        lowGainNode.gain.value = 2.5; 
+        highGainNode.gain.value = 1.0; 
 
-        // Function to play a tone
         function playTone(frequency = 440, isLowTone = false) {
             const oscillator = audioContext.createOscillator();
-            
-            oscillator.type = 'sine'; // Kann sein 'sine', 'square', 'sawtooth', 'triangle'
-            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // Frequenz einstellen
-            
-            // Connect oscillator to the appropriate gain node
-            if (isLowTone) {
-                oscillator.connect(lowGainNode);
-            } else {
-                oscillator.connect(highGainNode);
-            }
-            
-            // Connect the tone gain node to the master gain node
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            if (isLowTone) { oscillator.connect(lowGainNode); } else { oscillator.connect(highGainNode); }
             lowGainNode.connect(masterGainNode);
             highGainNode.connect(masterGainNode);
-
             oscillator.start(0);
-            oscillator.stop(audioContext.currentTime + 0.2); // Stop tone after 0.2 seconds
+            oscillator.stop(audioContext.currentTime + 0.2);
         }
         
-        // Function to play a tone multiple times with a delay
         function playToneThrice(frequency, isLowTone = false) {
             playTone(frequency, isLowTone);
-            setTimeout(() => playTone(frequency, isLowTone), 400); // Play again after 400ms
-            setTimeout(() => playTone(frequency, isLowTone), 800); // Play a third time after 800ms
+            setTimeout(() => playTone(frequency, isLowTone), 400);
+            setTimeout(() => playTone(frequency, isLowTone), 800);
         }
         
-        // Function to play an alternating high/low tone sequence
         function playAlternatingSequence() {
-            // Play high tone three times
             playTone(880, false);
             setTimeout(() => playTone(880, false), 400);
             setTimeout(() => playTone(880, false), 800);
-
-            // Wait 1.2 seconds before playing the low tones
             setTimeout(() => {
-                // Play low tone three times
                 playTone(330, true);
                 setTimeout(() => playTone(330, true), 400);
                 setTimeout(() => playTone(330, true), 800);
             }, 1200);
         }
         
-        // Add event listener to the color changer button
         colorChangerBtn.addEventListener('click', () => {
             body.style.backgroundColor = getRandomColor();
-            
             colorClickCount++;
-            
             if (colorClickCount % 5 === 0) {
                 showMessage("Du hast die Farbe 5 mal geändert. Die nächste Farbe ist rot!");
-                setTimeout(() => {
-                    body.style.backgroundColor = '#ef4444'; // Rot
-                }, 1000);
-            } else {
-                hideMessage();
-            }
+                setTimeout(() => { body.style.backgroundColor = '#ef4444'; }, 1000);
+            } else { hideMessage(); }
         });
         
-        // Add event listener to the high tone button
-        highToneBtn.addEventListener('click', () => {
-            playToneThrice(880, false); // Play a high tone three times
-        });
-
-        // Add event listener to the low tone button
-        lowToneBtn.addEventListener('click', () => {
-            playToneThrice(330, true); // Play a low tone three times (frequency adjusted)
-        });
-        
-        // Add event listener to the new alternating tone button
-        alternatingToneBtn.addEventListener('click', () => {
-            playAlternatingSequence();
-        });
-        
-        // Add event listener for the volume slider input
-        volumeSlider.addEventListener('input', (event) => {
-            masterGainNode.gain.value = event.target.value;
-        });
-        
-        // Add event listener to close the message box
+        highToneBtn.addEventListener('click', () => { playToneThrice(880, false); });
+        lowToneBtn.addEventListener('click', () => { playToneThrice(330, true); });
+        alternatingToneBtn.addEventListener('click', () => { playAlternatingSequence(); });
+        volumeSlider.addEventListener('input', (event) => { masterGainNode.gain.value = event.target.value; });
         closeMessageBtn.addEventListener('click', hideMessage);
     </script>
 </body>
-
 </html>
