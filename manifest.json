@@ -3,7 +3,7 @@
   "name": "erzeugt einen Testtons",
   "description": "Testton und Farbe",
   "start_url": "index.html",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
   "theme_color": "#000000",
   "background_color": "#000000",
