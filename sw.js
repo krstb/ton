@@ -1,45 +1,40 @@
-const CACHE_NAME = 'ton-v6'; // Ändere v2 zu v3, v4 etc., um Updates zu erzwingen
+const CACHE_NAME = 'ton-test-v1';
 const ASSETS = [
-  'index.html',
-  'manifest.json',
-  'icon-44.png',
-  'icon-192.png',
-  'icon-512.png'
+  '/ton/',
+  '/ton/index.html',
+  '/ton/manifest.json',
+  '/ton/icon-192.png',
+  '/ton/icon-512.png'
 ];
 
-// Installation: Dateien in den Cache laden
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+      // Lädt jede Datei einzeln, damit ein Fehler nicht alles blockiert
+      return Promise.allSettled(
+        ASSETS.map(url => cache.add(url))
+      );
     })
   );
-  // Aktiviert den neuen Service Worker sofort, ohne auf das Schließen der App zu warten
   self.skipWaiting();
 });
 
-// Aktivierung: Alten Cache löschen, wenn die Version (CACHE_NAME) geändert wurde
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keys) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('Lösche alten Cache:', cache);
-            return caches.delete(cache);
-          }
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
         })
       );
     })
   );
 });
 
-// Strategie: Network-First
-// Versucht erst das Netzwerk, bei Fehler (Offline) wird der Cache genutzt
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
+    caches.match(event.request).then((res) => {
+      return res || fetch(event.request);
     })
   );
 });
