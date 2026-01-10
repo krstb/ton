@@ -1,9 +1,8 @@
 {
   "short_name": "Ton",
   "name": "Testton",
-  "description": "Testton und Farbe neu",
-  "start_url": "/ton/",
-  "scope":"/ton/",
+  "description": "Testton und Farbe",
+  "start_url": "index.html",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#000000",
