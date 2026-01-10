@@ -1,18 +1,19 @@
 {
   "short_name": "Ton",
-  "name": "Testton",
-  "description": "Testton und Farbe",
-  "start_url": "index.html",
+  "name": "Testton App",
+  "description": "Testprojekt für Startverhalten",
+  "start_url": "/ton/",
+  "scope": "/ton/",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#000000",
   "background_color": "#000000",
   "icons": [
     {
-      "src": "icon-44.png",
+      "src": "icon-192.png",
       "type": "image/png",
-      "sizes": "44x44",
-      "purpose": "any maskable"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
