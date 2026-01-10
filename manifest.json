@@ -1,7 +1,7 @@
 {
   "short_name": "Ton",
   "name": "Testton",
-  "description": "Testton und Farbe",
+  "description": "Testton und Farbe neu",
   "start_url": "/ton/",
   "scope":"/ton/",
   "display": "standalone",
