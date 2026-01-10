@@ -8,10 +8,12 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     
-    <meta name="color-scheme" content="light">
-    
     <meta name="theme-color" content="#ffffff">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="color-scheme" content="light">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="icon-192.png">
 
     <script>
       // Service Worker Registrierung
@@ -25,182 +27,138 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap'); 
        
         /* Fix für PWA-Ränder */
-        html {background-color: #000000 !important;}
-        
-        body {background-color: #FF2F6D;
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #ffffff; /* Startet mit Weiß passend zum Splash-Screen */
+        }
+
+        body {
             font-family: 'Inter', sans-serif;
-            transition: background-color 0.5s ease-in-out;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Geändert von center auf flex-start */
-            min-height: 100vh;
-            padding-top: 20px; /* Abstand zum oberen Rand */
-        }
-        /* Custom message box styling */
-        .message-box {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            z-index: 1000;
-        }
-        .message-box.hidden {
-            display: none;
-        }
-        .button-group {
             display: flex;
             flex-direction: column;
-            gap: 16px; /* Space between buttons */
             align-items: center;
+            justify-content: center;
+            transition: background-color 0.5s ease;
         }
-        @media (min-width: 640px) {
-            .button-group {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
+
+        .btn-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            width: 90%;
+            max-width: 400px;
         }
-        .volume-control {
-            margin-top: 24px;
-            text-align: center;
+
+        .btn {
+            @apply flex flex-col items-center justify-center p-6 rounded-2xl shadow-lg transition-all active:scale-95 text-white font-bold;
         }
-        .volume-control input[type="range"] {
-            width: 80%;
-            -webkit-appearance: none;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            outline: none;
-            transition: opacity .2s;
-        }
-        .volume-control input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #4f46e5;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-        }
-        .volume-control input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #4f46e5;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+
+        #message {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            display: none;
+            z-index: 50;
         }
     </style>
 </head>
-<body>
+<body class="bg-white">
 
-    <div class="p-6 md:p-8 rounded-xl shadow-2xl bg-white bg-opacity-80 backdrop-filter backdrop-blur-lg border border-gray-200 text-center max-w-2xl mx-4">
-        <h1 class="text-2xl md:text-3xl font-bold mb-2 text-gray-800">Ton</h1>
-        <p class="text-base md:text-lg text-gray-600 mb-6">Klicke auf die Buttons, um die App zu steuern.</p>
-        
-        <div class="button-group">
-            <button id="color-changer-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
-                Farbe ändern
-            </button>
-            <button id="high-tone-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50">
-                Ton abspielen (hoch)
-            </button>
-            <button id="low-tone-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-teal-500 focus:ring-opacity-50">
-                Ton abspielen (tief)
-            </button>
-            <button id="alternating-tone-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-500 focus:ring-opacity-50">
-                Ton abspielen (wechselnd)
-            </button>
-        </div>
+    <div id="message"></div>
 
-        <div class="volume-control">
-            <label for="volume-slider" class="block text-gray-700 font-medium mb-2">Lautstärke:</label>
-            <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" class="w-full">
-        </div>
-    </div>
+    <h1 class="text-2xl font-bold mb-8 text-gray-800">Testton & Farbe</h1>
 
-    <div id="message-box" class="message-box hidden">
-        <p id="message-text" class="text-xl font-bold text-gray-800 mb-4"></p>
-        <button id="close-message-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105">
-            OK
+    <div class="btn-container">
+        <button id="colorChanger" class="btn bg-blue-500 hover:bg-blue-600">
+            <span>Farbe</span>
+        </button>
+        <button id="highTone" class="btn bg-green-500 hover:bg-green-600">
+            <span>Hoch</span>
+        </button>
+        <button id="lowTone" class="btn bg-orange-500 hover:bg-orange-600">
+            <span>Tief</span>
+        </button>
+        <button id="alternatingTone" class="btn bg-purple-500 hover:bg-purple-600">
+            <span>Mix</span>
         </button>
     </div>
 
-    <script>
-        const colorChangerBtn = document.getElementById('color-changer-btn');
-        const highToneBtn = document.getElementById('high-tone-btn');
-        const lowToneBtn = document.getElementById('low-tone-btn');
-        const alternatingToneBtn = document.getElementById('alternating-tone-btn');
-        const volumeSlider = document.getElementById('volume-slider');
-        const body = document.body;
-        const messageBox = document.getElementById('message-box');
-        const messageText = document.getElementById('message-text');
-        const closeMessageBtn = document.getElementById('close-message-btn');
+    <div class="mt-10 w-64">
+        <label for="volume" class="block text-sm font-medium text-gray-700 mb-2">Lautstärke</label>
+        <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500">
+    </div>
 
-        const colors = [
-            '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#ec4899',
-        ];
-        
+    <script>
+        const body = document.body;
+        const colorChangerBtn = document.getElementById('colorChanger');
+        const highToneBtn = document.getElementById('highTone');
+        const lowToneBtn = document.getElementById('lowTone');
+        const alternatingToneBtn = document.getElementById('alternatingTone');
+        const volumeSlider = document.getElementById('volume');
+        const messageBox = document.getElementById('message');
+
         let colorClickCount = 0;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const masterGainNode = audioCtx.createGain();
+        masterGainNode.connect(audioCtx.destination);
+        masterGainNode.gain.value = 0.5;
 
         function getRandomColor() {
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
-        
-        function showMessage(text) {
-            messageText.textContent = text;
-            messageBox.classList.remove('hidden');
-        }
-        
-        function hideMessage() {
-            messageBox.classList.add('hidden');
-        }
-
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const masterGainNode = audioContext.createGain();
-        masterGainNode.connect(audioContext.destination);
-        masterGainNode.gain.value = volumeSlider.value;
-        
-        const lowGainNode = audioContext.createGain();
-        const highGainNode = audioContext.createGain();
-        
-        lowGainNode.gain.value = 2.5; 
-        highGainNode.gain.value = 1.0; 
-
-        function playTone(frequency = 440, isLowTone = false) {
-            const oscillator = audioContext.createOscillator();
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-            
-            if (isLowTone) {
-                oscillator.connect(lowGainNode);
-            } else {
-                oscillator.connect(highGainNode);
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
             }
-            
-            lowGainNode.connect(masterGainNode);
-            highGainNode.connect(masterGainNode);
+            return color;
+        }
 
-            oscillator.start(0);
-            oscillator.stop(audioContext.currentTime + 0.2);
+        function showMessage(text) {
+            messageBox.textContent = text;
+            messageBox.style.display = 'block';
         }
-        
-        function playToneThrice(frequency, isLowTone = false) {
-            playTone(frequency, isLowTone);
-            setTimeout(() => playTone(frequency, isLowTone), 400);
-            setTimeout(() => playTone(frequency, isLowTone), 800);
+
+        function hideMessage() {
+            messageBox.style.display = 'none';
         }
-        
+
+        function playTone(freq, isSquare) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = isSquare ? 'square' : 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+
+            osc.connect(gain);
+            gain.connect(masterGainNode);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playToneThrice(freq, isSquare) {
+            playTone(freq, isSquare);
+            setTimeout(() => playTone(freq, isSquare), 400);
+            setTimeout(() => playTone(freq, isSquare), 800);
+        }
+
         function playAlternatingSequence() {
             playTone(880, false);
             setTimeout(() => playTone(880, false), 400);
@@ -241,15 +199,6 @@
         volumeSlider.addEventListener('input', (event) => {
             masterGainNode.gain.value = event.target.value;
         });
-        
-        closeMessageBtn.addEventListener('click', hideMessage);
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
